@@ -20,8 +20,12 @@
   shell: cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
   become: yes
 
+# - name: Setup Cluster - 3 -> Modify the user
+#   shell: chown $(id -u):$(id -g) /home/ubuntu/.kube/config
+#   become: yes
+
 - name: Setup Cluster - 3 -> Modify the user
-  shell: chown $(id -u):$(id -g) /home/ubuntu/.kube/config
+  shell: chown ubuntu:ubuntu /home/ubuntu/.kube/config
   become: yes
 
 # # Do we need to clear joinCommand.txt everytime? Think about it
