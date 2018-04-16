@@ -2,10 +2,26 @@
   shell: kubeadm init --apiserver-advertise-address $(hostname -i) > /home/ubuntu/k8-clusterConfig/output.txt
   become: yes
 
+- name: Install docker-py using pip
+  pip:
+    name: docker-py
+    state: present
+  become: yes
 
 - name: Copy the join command into the shell script from output.txt
   shell: cat /home/ubuntu/k8-clusterConfig/output.txt | grep "kubeadm join" > /home/ubuntu/k8-clusterConfig/joinTokens.sh
 
+- name: Copy the dockerfile to the master node
+  copy:
+    src: /home/ubuntu/k8-clusterConfig/Dockerfile
+    dest: /home/ubuntu/k8-clusterConfig/Dockerfile
+  become: yes
+
+- name: Copy checkboxsetup.yml to the master node
+  template:  
+    src: checkboxsetup.yml.j2
+    dest: "/home/ubuntu/k8-clusterConfig/checkboxsetup.yml"
+  become: yes
 
 - name: Fetch joinTokens.sh from Master to ansible machine
   fetch:

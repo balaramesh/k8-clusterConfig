@@ -1,0 +1,110 @@
+- include_vars: aws_credentials.yml
+
+- name: Install packages
+  apt: pkg={{ item }} state=present
+  with_items:
+   - python-pip
+  become: yes
+
+- name: Install ansible modules
+  become: yes
+  pip: name={{ item }}
+  with_items:
+   - boto
+   - python-jenkins
+   - lxml
+
+- name: Creating Master instance
+  ec2:
+   aws_access_key: "{{access_key}}"
+   aws_secret_key: "{{secret_key}}"
+   key_name: "{{kname}}"
+   instance_type: "{{app_instance_type}}"
+   region: "{{region_name}}"
+   image: "{{image_name}}"
+   wait: yes
+   groups: ['{{group_name1}}' , '{{group_name2}}']
+   vpc_subnet_id: "{{vpc_subnet_id}}"
+   assign_public_ip: yes
+   wait_timeout: "{{wait_time}}"
+   count: 1
+   instance_tags:
+    Name: "{{master_name}}"
+  register: master
+
+- name: Creating Node instances
+  ec2:
+   aws_access_key: "{{access_key}}"
+   aws_secret_key: "{{secret_key}}"
+   key_name: "{{kname}}"
+   instance_type: "{{app_instance_type}}"
+   region: "{{region_name}}"
+   image: "{{image_name}}"
+   wait: yes
+   groups: ['{{group_name1}}' , '{{group_name2}}']
+   vpc_subnet_id: "{{vpc_subnet_id}}"
+   assign_public_ip: yes
+   wait_timeout: "{{wait_time}}"
+   count: "{{count}}"
+   instance_tags:
+    Name: "{{node_name}}"
+  register: node
+
+- name: Adding host for Master
+  add_host:
+   hostname: "{{master.instances[0].public_ip}}"
+   ansible_host: "{{master.instances[0].public_ip}}"
+   groupname: k8.master
+   ansible_ssh_user: ubuntu
+   ansible_ssh_private_key_file: "{{project_path}}/ec2.key"
+- debug:
+   msg: "k8.master server IP address {{ master.instances[0].public_ip }}"
+
+- name: Adding host for k8.workers
+  add_host:
+   hostname: "{{node.instances[0].public_ip}}"
+   ansible_host: "{{node.instances[0].public_ip}}"
+   groupname: k8.workers
+   ansible_ssh_user: ubuntu
+   ansible_ssh_private_key_file: "{{project_path}}/ec2.key"
+- debug:
+   msg: "Node1 server IP address {{ node.instances[0].public_ip }}"
+
+- name: Adding host for k8.workers
+  add_host:
+   hostname: "{{node.instances[1].public_ip}}"
+   ansible_host: "{{node.instances[1].public_ip}}"
+   groupname: k8.workers
+   ansible_ssh_user: ubuntu
+   ansible_ssh_private_key_file: "{{project_path}}/ec2.key"
+- debug:
+   msg: "Node2 server IP address {{ node.instances[1].public_ip }}"
+
+- local_action: file path={{project_path}}/host state=absent
+  ignore_errors: yes
+- local_action: file path=./host state=touch
+- local_action: lineinfile line="[k8.master] \n{{master.instances[0].public_ip}} ansible_host={{ master.instances[0].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
+- local_action: lineinfile line="[k8.workers] \n{{node.instances[0].public_ip}} ansible_host={{ node.instances[0].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
+- local_action: lineinfile line="{{node.instances[1].public_ip}} ansible_host={{ node.instances[1].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
+
+- name: Waiting for port 22 to become available
+  wait_for:
+   host: "{{ item.public_dns_name }}"
+   port: 22
+   state: started
+  with_items: "{{ master.instances }}"
+
+- name: Waiting for port 22 to become available
+  wait_for:
+   host: "{{ item.public_dns_name }}"
+   port: 22
+   state: started
+  with_items: "{{ node.instances }}"
+
+- name: Accept new ssh fingerprints
+  shell: ssh-keyscan -H {{ item.public_ip }} >> /home/ubuntu/.ssh/known_hosts
+  with_items: '{{ master.instances }}'
+
+- name: Accept new ssh fingerprints
+  shell: ssh-keyscan -H {{ item.public_ip }} >> /home/ubuntu/.ssh/known_hosts
+  with_items: '{{ node.instances }}'

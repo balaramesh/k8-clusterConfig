@@ -2,7 +2,7 @@
 - hosts: localhost
   vars:
     mongo_port: 3002
-    mongo_ip: 127.0.0.1
+    mongo_ip: "{{ hostvars[groups['k8.master'][0]].ansible_host }}"
     mongo_user: admin
     mongo_password: password
     mail_user: csc5195191
@@ -13,17 +13,45 @@
 
     - name: Install required packages
       apt:
-        pkg: '{{item}}'
+        pkg: npm
         state: present
         update_cache: yes
       become: yes
-      with_items:
-        - npm
-        - nodejs
-        - nodejs-legacy
-        - nginx
-        - python3-pip
-        - python-pip
+
+    - name: Install required packages
+      apt:
+        pkg: nodejs
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install required packages
+      apt:
+        pkg: nodejs-legacy
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install required packages
+      apt:
+        pkg: nginx
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install required packages
+      apt:
+        pkg: python3-pip
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install required packages
+      apt:
+        pkg: python-pip
+        state: present
+        update_cache: yes
+      become: yes
 
     - name: Ensuring previous clone isn't present
       file:

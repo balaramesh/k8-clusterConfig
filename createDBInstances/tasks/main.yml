@@ -6,8 +6,13 @@
   become: yes
   with_items:
     - mongodb
-    - python3-pip
     - python-pip
+
+- name: Create pymongo directory
+  file:
+    path: /home/ubuntu/pymongo
+    state: directory
+  become: yes
 
 - name: Install python package for mongodb
   pip:

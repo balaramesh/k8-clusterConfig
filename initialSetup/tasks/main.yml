@@ -1,3 +1,12 @@
+- name: Installing python
+  raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+  become: yes
+
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt:
+   update_cache: yes
+  become: yes
+
 - name: Install required packages for k8
   apt:
     pkg: '{{item}}'
@@ -8,6 +17,7 @@
     - apt-transport-https
     - docker.io
     - git
+    - python-pip
 
 - name: Ensuring previous clone isn't present
   file:
