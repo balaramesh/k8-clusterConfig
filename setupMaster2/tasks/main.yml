@@ -22,7 +22,6 @@
 
 - name: Creating a deployement with 2 replicas using the image arun5493/checkbox
   shell: kubectl run checkbox --image=arun5493/checkbox --port=8080 --replicas=2
-  become: yes
 
 - name: Wait for two minutes for the replicas to be created and assigned
   pause:
@@ -30,7 +29,6 @@
 
 - name: Exposing the checkbox deployment using NodePort
   shell: kubectl expose deployment checkbox --type=NodePort
-  become: yes
 
 - name: Wait for a minute for to assign NodePort
   pause:
@@ -38,4 +36,3 @@
 
 - name: Printing the NodePort to access the application
   shell: kubectl describe services/checkbox
-  become: yes
