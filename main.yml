@@ -11,3 +11,7 @@
 - hosts: k8.workers
   roles:
     - setupWorkers
+
+- hosts: k8.master
+  roles:
+    - setupMaster2

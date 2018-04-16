@@ -10,7 +10,7 @@
     chdir: "/home/ubuntu/k8-clusterConfig/"
 
 - name: Execute the shell script to join the workers to Cluster
-  shell: "./jointokens.sh"
+  script: "joinTokens.sh"
   args:
-    chdir: "/home/ubuntu/k8-clusterConfig/"
+    chdir: "/home/ubuntu/k8-clusterConfig"
   become: yes
