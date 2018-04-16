@@ -3,56 +3,50 @@
 
 - name: Log into DockerHub
   docker_login:
-    username: arun5493
-    password: NCSU1wolf#
-    email: ajagana@ncsu.edu
+    username: "{{docker_username}}"
+    password: "{{docker_password}}"
+    email: "{{docker_email}}"
   become: yes
 
 - name: Build a docker image using Dockerfile
-  shell: docker build -t arun5493/newcheckbox .
+  shell: "docker build -t {{docker_image}} ."
   args:
     chdir: "/home/ubuntu/k8-clusterConfig/"
   become: yes
 
 - name: Pull the checkbox image
   docker_image:
-    name: arun5493/newcheckbox
+    name: "{{docker_image}}"
     pull: yes
   become: yes
 
 - name: Push the checkbox image
   docker_image:
-    name: arun5493/newcheckbox
-    repository: arun5493/newcheckbox
+    name: "{{docker_image}}"
+    repository: arun5493/checkbox
     push: yes
   become: yes
 
 - name: Wait for two minutes for the replicas to be created and assigned
   pause:
     minutes: 2
-# Do we need this step?
-# - name: Running Docker image
-#   shell: docker run arun5493/checkbox --env-file env.txt -p 80:80 -d arun5493/checkbox
-#   args:
-#     chdir: "/home/ubuntu/k8-clusterConfig/"
-#   become: yes
 
-- name: Creating a deployement with 2 replicas using the image arun5493/checkbox
-  shell: kubectl run checkbox1 --image=arun5493/newcheckbox --port=80 --replicas=2
+- name: Creating a deployement with 3 replicas using the image arun5493/newkubercheckbox
+  shell: "kubectl run checkbox --image=arun5493/checkbox --port=80 --replicas=3 --env=\"MONGO_PORT=\"{{mongo_port}}\"\" --env=\"MONGO_IP=\"{{ hostvars[groups['k8.master'][0]].ansible_host }}\"\" --env=\"MONGO_USER=\"{{mongo_user}}\"\" --env=\"MONGO_PASSWORD=\"{{mongo_password}}\"\" --env=\"MAIL_USER=\"{{mail_user}}\"\" --env=\"MAIL_PASSWORD=\"{{mail_password}}\"\" --env=\"MAIL_SMTP=\"{{mail_smtp}}\"\" --env=\"checkbox_path=\"{{checkbox_path}}\"\""
 
 - name: Wait for two minutes for the replicas to be created and assigned
   pause:
     minutes: 2
 
 - name: Exposing the checkbox deployment using NodePort
-  shell: kubectl expose deployment checkbox1 --type=NodePort
+  shell: kubectl expose deployment checkbox --type=NodePort
 
 - name: Wait for a minute for to assign NodePort
   pause:
     minutes: 1
 
 - name: Printing the NodePort to access the application
-  shell: kubectl describe services/checkbox1
+  shell: kubectl describe services/checkbox
   register: samp
 - debug:
-    var: samp
+    var: samp.stdout_lines

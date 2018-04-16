@@ -80,12 +80,24 @@
 - debug:
    msg: "Node2 server IP address {{ node.instances[1].public_ip }}"
 
+- name: Adding host for k8.workers
+  add_host:
+   hostname: "{{node.instances[2].public_ip}}"
+   ansible_host: "{{node.instances[2].public_ip}}"
+   groupname: k8.workers
+   ansible_ssh_user: ubuntu
+   ansible_ssh_private_key_file: "{{project_path}}/ec2.key"
+- debug:
+   msg: "Node3 server IP address {{ node.instances[2].public_ip }}"
+
 - local_action: file path={{project_path}}/host state=absent
   ignore_errors: yes
 - local_action: file path=./host state=touch
 - local_action: lineinfile line="[k8.master] \n{{master.instances[0].public_ip}} ansible_host={{ master.instances[0].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
 - local_action: lineinfile line="[k8.workers] \n{{node.instances[0].public_ip}} ansible_host={{ node.instances[0].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
 - local_action: lineinfile line="{{node.instances[1].public_ip}} ansible_host={{ node.instances[1].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
+- local_action: lineinfile line="{{node.instances[2].public_ip}} ansible_host={{ node.instances[2].public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file={{project_path}}/ec2.key" insertafter=EOF dest={{project_path}}/host
+
 
 - name: Waiting for port 22 to become available
   wait_for:

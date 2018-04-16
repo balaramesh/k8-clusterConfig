@@ -1,13 +1,7 @@
 ---
 - hosts: localhost
   vars:
-    mongo_port: 3002
-    mongo_ip: "{{ hostvars[groups['k8.master'][0]].ansible_host }}"
-    mongo_user: admin
-    mongo_password: password
-    mail_user: csc5195191
-    mail_password: testaccount
-    mail_smtp: smtp.gmail.com
+    mongo_ip: {{ hostvars[groups['k8.master'][0]].ansible_host }}
     checkbox_path: /home/ubuntu/checkbox.io
   tasks:
 
@@ -92,13 +86,3 @@
        state: restarted
       become: yes
 
-    # - name: Running server.js
-    #   shell:  cd {{checkbox_path}}/server-side/site/; forever stopall; forever start server.js
-    #   environment:
-    #     MONGO_PORT: "{{mongo_port}}"
-    #     MONGO_IP: "{{mongo_ip}}"
-    #     MONGO_USER: "{{mongo_user}}"
-    #     MONGO_PASSWORD: "{{mongo_password}}"
-    #     MAIL_USER: "{{mail_user}}"
-    #     MAIL_PASSWORD: "{{mail_password}}"
-    #     MAIL_SMTP: "{{mail_smtp}}"
