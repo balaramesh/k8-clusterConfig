@@ -36,6 +36,7 @@
     content: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
     dest: /etc/apt/sources.list.d/kubernetes.list
     force: yes
+  become: yes
 
 - name: Install Kubernetes applications
   apt:
