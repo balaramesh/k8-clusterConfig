@@ -1,0 +1,42 @@
+- name: Install required packages
+  apt:
+    pkg: '{{item}}'
+    state: present
+    update_cache: yes
+  become: yes
+  with_items:
+    - mongodb
+    - python3-pip
+    - python-pip
+
+- name: Install python package for mongodb
+  pip:
+    name: pymongo
+    state: present
+  become: yes
+
+- name: Add a new mongodb user
+  mongodb_user:
+    database: admin
+    name: "{{mongo_user}}"
+    password: "{{mongo_password}}"
+    state: present
+
+- name: Restart mongoDb
+  service:
+   name: mongodb
+   state: restarted
+  become: yes
+
+- name: Update the bind address for mongodb
+  replace:
+    path: /etc/mongodb.conf
+    regexp: "bind_ip = 127.0.0.1"
+    replace: "bind_ip = 0.0.0.0"
+  become: yes
+
+- name: Restart mongoDb
+  service:
+   name: mongodb
+   state: restarted
+  become: yes

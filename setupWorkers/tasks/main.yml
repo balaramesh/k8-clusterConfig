@@ -1,0 +1,16 @@
+- name: Copy joinTokens.sh from ansible machine to the Workers
+  copy:
+    src: "/home/ubuntu/k8-clusterConfig/joinTokens.sh"
+    dest: "/home/ubuntu/k8-clusterConfig/joinTokens.sh"
+  become: yes
+
+- name: chmod the shell script to join commands.
+  shell: "chmod +x joinTokens.sh"
+  args:
+    chdir: "/home/ubuntu/k8-clusterConfig/"
+
+- name: Execute the shell script to join the workers to Cluster
+  shell: "./jointokens.sh"
+  args:
+    chdir: "/home/ubuntu/k8-clusterConfig/"
+  become: yes

@@ -1,0 +1,29 @@
+- name: Init k8 Master and pipe the output to a text file - output.txt
+  shell: kubeadm init --apiserver-advertise-address $(hostname -i) > /home/ubuntu/k8-clusterConfig/output.txt
+  become: yes
+
+
+- name: Copy the join command into the shell script from output.txt
+  shell: cat /home/ubuntu/k8-clusterConfig/output.txt | grep "kubeadm join" > /home/ubuntu/k8-clusterConfig/joinTokens.sh
+
+
+- name: Fetch joinTokens.sh from Master to ansible machine
+  fetch:
+    src: "/home/ubuntu/k8-clusterConfig/joinTokens.sh"
+    dest: "/home/ubuntu/k8-clusterConfig/joinTokens.sh"
+    flat: yes
+
+- name: Setup Cluster - 1 -> Create .kube folder
+  shell: mkdir -p /home/ubuntu/.kube
+
+- name: Setup Cluster - 2 -> Copy the config file from /etc/kubernetes/admin.conf to /home/ubuntu/.kube/config
+  shell: cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+  become: yes
+
+- name: Setup Cluster - 3 -> Modify the user
+  shell: chown $(id -u):$(id -g) /home/ubuntu/.kube/config
+  become: yes
+
+# # Do we need to clear joinCommand.txt everytime? Think about it
+# - name: Execute python code to extract the token and discovery token
+#   shell: python /home/ubuntu/k8/extractTokens.py > joinCommand.txt
