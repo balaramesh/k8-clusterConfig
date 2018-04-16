@@ -1,0 +1,8 @@
+mongo_port: 3002
+mongo_ip: 54.245.73.254
+mongo_user: admin
+mongo_password: password
+mail_user: csc5195191
+mail_password: testaccount
+mail_smtp: smtp.gmail.com
+checkbox_path: /home/ubuntu/checkbox.io
