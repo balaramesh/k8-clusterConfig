@@ -7,6 +7,11 @@
    update_cache: yes
   become: yes
 
+- name: Create k8 directory
+  file:
+    path: /home/ubuntu/k8-clusterConfig
+    state: directory
+
 - name: Install required packages for k8
   apt:
     pkg: '{{item}}'
@@ -19,13 +24,6 @@
     - git
     - python-pip
 
-- name: Ensuring previous clone isn't present
-  file:
-    state: absent
-    path: '/home/ubuntu/k8-clusterConfig'
-
-- name: Cloning Github repo
-  git: repo=https://github.com/arun5493/k8-clusterConfig.git clone=yes dest=/home/ubuntu/k8-clusterConfig
 
 - name: Start and enable docker
   systemd: state=started name=docker

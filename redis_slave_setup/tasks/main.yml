@@ -1,0 +1,63 @@
+---
+- name: update apt
+  apt: 
+    update_cache: yes
+
+- name: install the required packages
+  apt: 
+    pkg: '{{item}}' 
+    state: latest
+  with_items:
+    - make
+    - build-essential
+    - tcl8.5
+    - gcc
+    - libc6-dev
+
+- name: download stable redis
+  get_url: 
+    url: http://download.redis.io/redis-stable.tar.gz
+    dest: /tmp/redis-stable.tar.gz
+  
+
+# - name: Unarchive the downloaded tar file
+#   unarchive:
+#     src: /tmp/redis-stable.tar.gz
+#     dest: /tmp/
+#     remote-src: yes
+#   become: yes
+
+- name: untar redis
+  command: tar zxf /tmp/redis-stable.tar.gz -C /tmp
+
+- name: Install binaries
+  make:
+    chdir: /tmp/redis-stable/
+    target: install
+  become: yes
+
+- name: Comment out bind IP in redis.conf file
+  replace: 
+    path: /tmp/redis-stable/redis.conf
+    regexp: '^bind'
+    replace: '#bind'
+
+- name: Change protected mode to no in redis.conf file
+  replace:
+    path: /tmp/redis-stable/redis.conf
+    regexp: '^protected-mode yes'
+    replace: 'protected-mode no'
+
+- name: Enable master-slave replication in redis.conf file
+  lineinfile:
+    path: /tmp/redis-stable/redis.conf
+    insertafter: '^slaveof'
+    line: 'slaveof <masterip> <masterport>'
+
+# - name: ensure redis service is restarted
+#   service: 
+#     name: redis 
+#     state: restarted
+
+- name: Ensure Redis is started 
+  shell: "redis-server /tmp/redis-stable/redis.conf &"

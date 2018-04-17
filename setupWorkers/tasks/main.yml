@@ -2,7 +2,7 @@
   copy:
     src: "/home/ubuntu/k8-clusterConfig/joinTokens.sh"
     dest: "/home/ubuntu/k8-clusterConfig/joinTokens.sh"
-  become: yes
+  
 
 - name: chmod the shell script to join commands.
   shell: "chmod +x joinTokens.sh"
